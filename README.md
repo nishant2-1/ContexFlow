@@ -151,6 +151,19 @@ docker build -t contextflow .
 docker run --env-file .env -p 3000:3000 contextflow
 ```
 
+## Collaboration Workflow
+
+- Contribution guide: `CONTRIBUTING.md`
+- Branching model: `docs/BRANCHING_STRATEGY.md`
+- Pull request template: `.github/pull_request_template.md`
+
+Recommended day-to-day flow:
+
+1. Branch from `develop`.
+2. Ship focused commits with conventional messages.
+3. Open PR into `develop` and pass CI checks.
+4. Merge `develop` into `main` for releases.
+
 ## Suggested Resume / Portfolio Positioning
 
 Use this as a “Workflow Intelligence Platform” project and highlight:
