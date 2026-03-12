@@ -30,3 +30,31 @@ export interface WorkflowResult {
   source: SourcePlatform;
   latencyMs: number;
 }
+
+export type WorkflowRunStatus =
+  | "ingested"
+  | "processing"
+  | "succeeded"
+  | "failed"
+  | "duplicate";
+
+export interface WorkflowFailureEvent {
+  eventId: string;
+  source: SourcePlatform;
+  reason: string;
+  createdAt: string;
+}
+
+export interface WorkflowRunRecord {
+  eventId: string;
+  source: SourcePlatform;
+  status: WorkflowRunStatus;
+  createdAt: string;
+  updatedAt: string;
+  simulated: boolean;
+  latencyMs: number | null;
+  trelloCardUrl: string | null;
+  priority: ProcessedTask["priority"] | null;
+  summary: string | null;
+  reason: string | null;
+}

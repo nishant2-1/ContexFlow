@@ -3,24 +3,26 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ContextFlow Ops Console</title>
+    <title>ContextFlow Live Command Center</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
       rel="stylesheet"
     />
     <style>
       :root {
-        --bg: #0c111d;
-        --bg-soft: #131a2a;
-        --card: rgba(19, 26, 42, 0.75);
-        --text: #edf2f7;
-        --muted: #a9b6cc;
-        --accent: #38bdf8;
-        --accent-2: #22c55e;
-        --danger: #fb7185;
-        --border: rgba(255, 255, 255, 0.12);
+        --ink: #eef4ff;
+        --muted: #a6b4cd;
+        --surface: rgba(18, 25, 43, 0.74);
+        --surface-strong: rgba(14, 21, 39, 0.92);
+        --border: rgba(163, 184, 214, 0.22);
+        --cyan: #2dd4bf;
+        --amber: #f59e0b;
+        --rose: #fb7185;
+        --lime: #84cc16;
+        --bg1: #0b1020;
+        --bg2: #111a33;
       }
 
       * {
@@ -30,95 +32,130 @@
       body {
         margin: 0;
         min-height: 100vh;
-        font-family: "Space Grotesk", sans-serif;
-        color: var(--text);
+        color: var(--ink);
+        font-family: "Syne", sans-serif;
         background:
-          radial-gradient(circle at 8% 15%, rgba(56, 189, 248, 0.22), transparent 36%),
-          radial-gradient(circle at 85% 80%, rgba(34, 197, 94, 0.2), transparent 42%),
-          linear-gradient(140deg, #090d16, #0f1729 48%, #12182b);
+          radial-gradient(circle at 10% 14%, rgba(45, 212, 191, 0.2), transparent 35%),
+          radial-gradient(circle at 88% 75%, rgba(245, 158, 11, 0.2), transparent 38%),
+          linear-gradient(145deg, var(--bg1), var(--bg2) 45%, #0c152b 100%);
       }
 
       .shell {
-        max-width: 1100px;
+        max-width: 1280px;
         margin: 0 auto;
-        padding: 28px 18px 42px;
+        padding: 24px 18px 52px;
       }
 
       .hero {
         display: flex;
         justify-content: space-between;
+        align-items: end;
         gap: 16px;
-        align-items: flex-end;
         flex-wrap: wrap;
-        margin-bottom: 22px;
       }
 
       .title {
         margin: 0;
-        font-size: clamp(2rem, 4vw, 3rem);
-        letter-spacing: -0.03em;
+        font-size: clamp(2rem, 5vw, 3.6rem);
+        letter-spacing: -0.04em;
+        line-height: 1;
       }
 
       .subtitle {
-        margin: 8px 0 0;
+        margin: 10px 0 0;
         color: var(--muted);
+        font-size: 0.98rem;
       }
 
-      .badge {
-        font-family: "IBM Plex Mono", monospace;
+      .status-row {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .pill {
         border: 1px solid var(--border);
         border-radius: 999px;
-        padding: 8px 12px;
-        background: rgba(56, 189, 248, 0.14);
+        background: rgba(45, 212, 191, 0.12);
+        padding: 7px 13px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.78rem;
       }
 
-      .grid {
+      .layout {
+        margin-top: 18px;
         display: grid;
         grid-template-columns: repeat(12, 1fr);
         gap: 14px;
       }
 
       .card {
-        background: var(--card);
-        backdrop-filter: blur(8px);
+        background: var(--surface);
         border: 1px solid var(--border);
         border-radius: 16px;
         padding: 16px;
+        backdrop-filter: blur(9px);
         animation: rise 420ms ease both;
       }
 
-      .stat {
-        grid-column: span 3;
+      .stats {
+        grid-column: span 12;
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 12px;
       }
 
-      .stat h3 {
+      .metric {
+        background: var(--surface-strong);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 12px;
+      }
+
+      .metric h3 {
         margin: 0;
         color: var(--muted);
-        font-size: 0.9rem;
-        font-weight: 500;
+        font-size: 0.8rem;
+        font-family: "JetBrains Mono", monospace;
       }
 
-      .stat p {
-        margin: 10px 0 0;
-        font-size: 1.9rem;
+      .metric p {
+        margin: 8px 0 0;
+        font-size: 1.6rem;
         font-weight: 700;
       }
 
-      .wide {
+      .lab {
+        grid-column: span 5;
+      }
+
+      .stream {
+        grid-column: span 7;
+      }
+
+      .runs {
         grid-column: span 8;
       }
 
-      .narrow {
+      .dead {
         grid-column: span 4;
       }
 
       .section-title {
         margin: 0 0 10px;
+        font-size: 1.1rem;
+      }
+
+      .muted {
+        color: var(--muted);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.78rem;
       }
 
       .bar-wrap {
+        margin-top: 8px;
         width: 100%;
-        height: 14px;
+        height: 10px;
         border-radius: 999px;
         background: rgba(255, 255, 255, 0.08);
         overflow: hidden;
@@ -127,8 +164,144 @@
       .bar {
         height: 100%;
         width: 0;
-        background: linear-gradient(90deg, var(--accent), var(--accent-2));
-        transition: width 360ms ease;
+        background: linear-gradient(90deg, var(--cyan), var(--lime));
+        transition: width 280ms ease;
+      }
+
+      label {
+        display: block;
+        margin-top: 10px;
+        margin-bottom: 6px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.76rem;
+        color: var(--muted);
+      }
+
+      textarea,
+      select,
+      input,
+      button {
+        width: 100%;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: rgba(11, 16, 31, 0.76);
+        color: var(--ink);
+        padding: 10px 11px;
+        font-family: "JetBrains Mono", monospace;
+      }
+
+      textarea {
+        min-height: 110px;
+        resize: vertical;
+      }
+
+      .split {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .btn {
+        margin-top: 12px;
+        background: linear-gradient(120deg, rgba(45, 212, 191, 0.3), rgba(132, 204, 22, 0.2));
+        cursor: pointer;
+      }
+
+      .btn:hover {
+        border-color: rgba(45, 212, 191, 0.72);
+      }
+
+      .quick {
+        margin-top: 10px;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .quick button {
+        width: auto;
+        font-size: 0.74rem;
+        cursor: pointer;
+      }
+
+      .feed {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        gap: 8px;
+        max-height: 300px;
+        overflow: auto;
+      }
+
+      .feed-item {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 10px;
+        background: rgba(7, 12, 24, 0.58);
+      }
+
+      .tag {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.68rem;
+        margin-right: 8px;
+      }
+
+      .tag.ingested,
+      .tag.processing {
+        color: var(--cyan);
+      }
+
+      .tag.succeeded {
+        color: var(--lime);
+      }
+
+      .tag.failed,
+      .tag.duplicate {
+        color: var(--rose);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.77rem;
+      }
+
+      th,
+      td {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+        text-align: left;
+        padding: 8px 6px;
+      }
+
+      th {
+        color: var(--muted);
+        font-weight: 600;
+      }
+
+      .status {
+        border-radius: 999px;
+        padding: 2px 7px;
+        border: 1px solid var(--border);
+      }
+
+      .status.succeeded {
+        color: var(--lime);
+      }
+
+      .status.failed,
+      .status.duplicate {
+        color: var(--rose);
+      }
+
+      .status.processing,
+      .status.ingested {
+        color: var(--cyan);
       }
 
       .dead-list {
@@ -136,43 +309,37 @@
         padding: 0;
         list-style: none;
         display: grid;
-        gap: 10px;
+        gap: 8px;
       }
 
       .dead-item {
         border: 1px solid var(--border);
         border-radius: 12px;
         padding: 10px;
-        background: rgba(8, 12, 20, 0.36);
-      }
-
-      .dead-item small {
-        color: var(--muted);
-        font-family: "IBM Plex Mono", monospace;
+        background: rgba(13, 9, 17, 0.5);
       }
 
       .dead-item button {
         margin-top: 8px;
-        background: transparent;
-        color: var(--text);
-        border: 1px solid var(--border);
-        border-radius: 999px;
-        padding: 6px 12px;
         cursor: pointer;
       }
 
-      .footer {
-        margin-top: 20px;
+      .foot {
+        margin-top: 10px;
         color: var(--muted);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.75rem;
       }
 
-      @media (max-width: 920px) {
-        .stat {
-          grid-column: span 6;
+      @media (max-width: 1100px) {
+        .stats {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
         }
 
-        .wide,
-        .narrow {
+        .lab,
+        .stream,
+        .runs,
+        .dead {
           grid-column: span 12;
         }
       }
@@ -182,7 +349,6 @@
           opacity: 0;
           transform: translateY(10px);
         }
-
         to {
           opacity: 1;
           transform: translateY(0);
@@ -194,52 +360,143 @@
     <main class="shell">
       <section class="hero">
         <div>
-          <h1 class="title">ContextFlow Ops Console</h1>
-          <p class="subtitle">AI workflow reliability dashboard for webhook to ticket automation.</p>
+          <h1 class="title">ContextFlow Live Command Center</h1>
+          <p class="subtitle">Realtime AI workflow observability, simulation lab, and run intelligence.</p>
         </div>
-        <div class="badge" id="refreshState">waiting for data...</div>
+        <div class="status-row">
+          <div class="pill" id="streamState">stream: connecting</div>
+          <div class="pill" id="refreshState">refresh: pending</div>
+        </div>
       </section>
 
-      <section class="grid">
-        <article class="card stat">
-          <h3>Ingested</h3>
-          <p id="ingested">0</p>
-        </article>
-        <article class="card stat">
-          <h3>Processed</h3>
-          <p id="processed">0</p>
-        </article>
-        <article class="card stat">
-          <h3>Tickets</h3>
-          <p id="tickets">0</p>
-        </article>
-        <article class="card stat">
-          <h3>Failures</h3>
-          <p id="failed">0</p>
-        </article>
-
-        <article class="card wide">
-          <h2 class="section-title">Pipeline Success Rate</h2>
-          <div class="bar-wrap"><div class="bar" id="successBar"></div></div>
-          <p id="successText" class="subtitle">0%</p>
-        </article>
-
-        <article class="card narrow">
-          <h2 class="section-title">Latency</h2>
-          <p id="latency" style="font-size: 2.2rem; margin: 8px 0">0 ms</p>
-          <p class="subtitle">Average end-to-end processing time.</p>
+      <section class="layout">
+        <article class="card stats">
+          <div class="metric">
+            <h3>Ingested</h3>
+            <p id="ingested">0</p>
+          </div>
+          <div class="metric">
+            <h3>Processed</h3>
+            <p id="processed">0</p>
+          </div>
+          <div class="metric">
+            <h3>Tickets</h3>
+            <p id="tickets">0</p>
+          </div>
+          <div class="metric">
+            <h3>Failures</h3>
+            <p id="failed">0</p>
+          </div>
+          <div class="metric">
+            <h3>Latency</h3>
+            <p id="latency">0 ms</p>
+          </div>
+          <div style="grid-column: 1 / -1; margin-top: 4px">
+            <div class="muted">pipeline success rate <span id="successText">0%</span></div>
+            <div class="bar-wrap"><div class="bar" id="successBar"></div></div>
+          </div>
         </article>
 
-        <article class="card wide">
+        <article class="card lab">
+          <h2 class="section-title">Simulation Lab</h2>
+          <div class="muted">Craft synthetic events and watch the pipeline react live.</div>
+
+          <form id="simForm">
+            <label for="simText">scenario text</label>
+            <textarea id="simText" required>
+#task @sarah investigate payment timeout and deliver mitigation plan by 2026-03-20. urgent blocker for release.
+            </textarea>
+
+            <div class="split">
+              <div>
+                <label for="simSource">source</label>
+                <select id="simSource">
+                  <option value="slack">slack</option>
+                  <option value="discord">discord</option>
+                </select>
+              </div>
+              <div>
+                <label for="simPriority">priority hint</label>
+                <select id="simPriority">
+                  <option value="">none</option>
+                  <option value="low">low</option>
+                  <option value="medium">medium</option>
+                  <option value="high">high</option>
+                  <option value="critical">critical</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="split">
+              <div>
+                <label for="simAssignee">assignee (optional)</label>
+                <input id="simAssignee" placeholder="alex" />
+              </div>
+              <div>
+                <label for="simDeadline">deadline ISO (optional)</label>
+                <input id="simDeadline" placeholder="2026-03-20T17:00:00.000Z" />
+              </div>
+            </div>
+
+            <button class="btn" type="submit" id="simulateBtn">launch simulation</button>
+          </form>
+
+          <div class="quick">
+            <button data-quick="outage">outage incident</button>
+            <button data-quick="handoff">sprint handoff</button>
+            <button data-quick="feature">feature planning</button>
+          </div>
+
+          <div class="foot" id="simStatus">ready</div>
+        </article>
+
+        <article class="card stream">
+          <h2 class="section-title">Live Event Stream</h2>
+          <div class="muted">Server-sent updates from ingestion to ticket creation.</div>
+          <ul class="feed" id="activityFeed"></ul>
+        </article>
+
+        <article class="card runs">
+          <h2 class="section-title">Recent Workflow Runs</h2>
+          <div style="overflow: auto">
+            <table>
+              <thead>
+                <tr>
+                  <th>event</th>
+                  <th>source</th>
+                  <th>status</th>
+                  <th>priority</th>
+                  <th>latency</th>
+                  <th>updated</th>
+                </tr>
+              </thead>
+              <tbody id="runsTable"></tbody>
+            </table>
+          </div>
+        </article>
+
+        <article class="card dead">
           <h2 class="section-title">Dead Letter Queue</h2>
           <ul id="deadLetters" class="dead-list"></ul>
         </article>
       </section>
-
-      <p class="footer">Auto-refreshes every 5 seconds.</p>
     </main>
 
     <script>
+      const state = {
+        activities: [],
+        stream: null
+      };
+
+      function escapeHtml(value) {
+        return String(value)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#39;");
+      }
+
       async function getJson(url, options) {
         const response = await fetch(url, options);
         if (!response.ok) {
@@ -248,9 +505,79 @@
         return response.json();
       }
 
-      async function replay(eventId) {
-        await getJson(`/api/replay/${eventId}`, { method: "POST" });
-        await refresh();
+      function setRefreshState(text) {
+        document.getElementById("refreshState").textContent = text;
+      }
+
+      function addActivity(type, payload) {
+        state.activities.unshift({
+          type,
+          payload,
+          at: new Date().toISOString()
+        });
+
+        state.activities = state.activities.slice(0, 50);
+        renderFeed();
+      }
+
+      function renderFeed() {
+        const feed = document.getElementById("activityFeed");
+        if (state.activities.length === 0) {
+          feed.innerHTML = '<li class="feed-item">No activity yet.</li>';
+          return;
+        }
+
+        feed.innerHTML = state.activities
+          .map((item) => {
+            const eventId = item.payload.eventId || "n/a";
+            const source = item.payload.source || "system";
+            const extra =
+              item.type === "succeeded"
+                ? `card: ${item.payload.trelloCardUrl || "n/a"}`
+                : item.type === "failed"
+                  ? `reason: ${item.payload.reason || "unknown"}`
+                  : `text: ${(item.payload.text || "").slice(0, 80)}`;
+
+            return `
+              <li class="feed-item">
+                <span class="tag ${escapeHtml(item.type)}">${escapeHtml(item.type)}</span>
+                <span class="muted">${new Date(item.at).toLocaleTimeString()}</span><br />
+                <span class="muted">event: ${escapeHtml(eventId)} | source: ${escapeHtml(source)}</span><br />
+                <span>${escapeHtml(extra)}</span>
+              </li>
+            `;
+          })
+          .join("");
+      }
+
+      function renderRuns(records) {
+        const tbody = document.getElementById("runsTable");
+
+        if (!records.length) {
+          tbody.innerHTML = '<tr><td colspan="6">No runs available.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = records
+          .map((record) => {
+            const id = escapeHtml(record.eventId.slice(0, 18));
+            const source = escapeHtml(record.source);
+            const status = escapeHtml(record.status);
+            const priority = escapeHtml(record.priority || "-");
+            const latency = record.latencyMs === null ? "-" : `${record.latencyMs} ms`;
+            const updated = new Date(record.updatedAt).toLocaleTimeString();
+            return `
+              <tr>
+                <td title="${escapeHtml(record.eventId)}">${id}</td>
+                <td>${source}</td>
+                <td><span class="status ${status}">${status}</span></td>
+                <td>${priority}</td>
+                <td>${escapeHtml(latency)}</td>
+                <td>${escapeHtml(updated)}</td>
+              </tr>
+            `;
+          })
+          .join("");
       }
 
       function renderDeadLetters(records) {
@@ -258,30 +585,35 @@
         container.innerHTML = "";
 
         if (records.length === 0) {
-          container.innerHTML = `<li class="dead-item">No dead-letter records. Pipeline is healthy.</li>`;
+          container.innerHTML = '<li class="dead-item">No dead-letter records. Pipeline is stable.</li>';
           return;
         }
 
-        for (const record of records.slice(0, 6)) {
+        for (const record of records.slice(0, 8)) {
           const item = document.createElement("li");
           item.className = "dead-item";
           item.innerHTML = `
-            <strong>${record.reason}</strong><br />
-            <small>event: ${record.eventId} | source: ${record.source} | stage: ${record.stage}</small>
-            <div><button data-event="${record.eventId}">Replay Event</button></div>
+            <strong>${escapeHtml(record.reason || "workflow error")}</strong><br />
+            <span class="muted">${escapeHtml(record.eventId)} | ${escapeHtml(record.source)} | ${escapeHtml(record.stage)}</span>
+            <button data-event="${escapeHtml(record.eventId)}">replay</button>
           `;
           container.appendChild(item);
         }
 
         container.querySelectorAll("button").forEach((button) => {
           button.addEventListener("click", async () => {
+            const eventId = button.dataset.event;
+            if (!eventId) {
+              return;
+            }
             button.disabled = true;
-            button.textContent = "Replaying...";
+            button.textContent = "replaying...";
             try {
-              await replay(button.dataset.event);
-              button.textContent = "Replayed";
+              await getJson(`/api/replay/${eventId}`, { method: "POST" });
+              button.textContent = "replayed";
+              await refresh();
             } catch {
-              button.textContent = "Replay Failed";
+              button.textContent = "failed";
               button.disabled = false;
             }
           });
@@ -289,9 +621,10 @@
       }
 
       async function refresh() {
-        const [metrics, deadLetters] = await Promise.all([
+        const [metrics, deadLetters, runs] = await Promise.all([
           getJson("/api/metrics"),
-          getJson("/api/dead-letters")
+          getJson("/api/dead-letters"),
+          getJson("/api/runs?limit=20")
         ]);
 
         document.getElementById("ingested").textContent = metrics.ingestedEvents;
@@ -308,20 +641,114 @@
         document.getElementById("successText").textContent = `${successRate}%`;
         document.getElementById("successBar").style.width = `${successRate}%`;
 
-        document.getElementById("refreshState").textContent = `last refresh: ${new Date().toLocaleTimeString()}`;
-
         renderDeadLetters(deadLetters.records || []);
+        renderRuns(runs.records || []);
+
+        setRefreshState(`refresh: ${new Date().toLocaleTimeString()}`);
       }
 
+      function connectStream() {
+        if (state.stream) {
+          state.stream.close();
+        }
+
+        const stream = new EventSource("/api/stream");
+        state.stream = stream;
+
+        const streamState = document.getElementById("streamState");
+
+        stream.onopen = () => {
+          streamState.textContent = "stream: connected";
+        };
+
+        stream.onerror = () => {
+          streamState.textContent = "stream: reconnecting";
+        };
+
+        ["ingested", "processing", "succeeded", "failed", "duplicate"].forEach((eventName) => {
+          stream.addEventListener(eventName, (event) => {
+            try {
+              const payload = JSON.parse(event.data);
+              addActivity(eventName, payload);
+              void refresh();
+            } catch {
+              addActivity("failed", { eventId: "stream-parse", source: "system", reason: "Invalid stream payload" });
+            }
+          });
+        });
+      }
+
+      function wireSimulationForm() {
+        const form = document.getElementById("simForm");
+        const status = document.getElementById("simStatus");
+        const button = document.getElementById("simulateBtn");
+
+        form.addEventListener("submit", async (event) => {
+          event.preventDefault();
+
+          const payload = {
+            source: document.getElementById("simSource").value,
+            text: document.getElementById("simText").value.trim(),
+            assignee: document.getElementById("simAssignee").value.trim() || undefined,
+            deadlineIso: document.getElementById("simDeadline").value.trim() || undefined,
+            priorityHint: document.getElementById("simPriority").value || undefined
+          };
+
+          button.disabled = true;
+          status.textContent = "submitting simulation...";
+
+          try {
+            const response = await getJson("/api/simulate", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload)
+            });
+
+            status.textContent = `accepted: ${response.eventId}`;
+            addActivity("ingested", { eventId: response.eventId, source: payload.source, text: payload.text });
+          } catch (error) {
+            status.textContent = `simulation failed: ${error.message}`;
+          } finally {
+            button.disabled = false;
+          }
+        });
+
+        document.querySelectorAll("[data-quick]").forEach((button) => {
+          button.addEventListener("click", () => {
+            const key = button.dataset.quick;
+            const text = document.getElementById("simText");
+            const priority = document.getElementById("simPriority");
+
+            if (key === "outage") {
+              text.value = "#task @ops team investigate API outage and restore service before 18:00 today. production down and customers are blocked.";
+              priority.value = "critical";
+              return;
+            }
+
+            if (key === "handoff") {
+              text.value = "[task] @sprintlead prepare sprint handoff notes and unblock QA by tomorrow morning.";
+              priority.value = "medium";
+              return;
+            }
+
+            text.value = "/todo @product validate onboarding experiment and share decision by 2026-03-24.";
+            priority.value = "high";
+          });
+        });
+      }
+
+      connectStream();
+      wireSimulationForm();
+      renderFeed();
       refresh().catch((error) => {
-        document.getElementById("refreshState").textContent = `dashboard error: ${error.message}`;
+        setRefreshState(`refresh error: ${error.message}`);
       });
 
       setInterval(() => {
         refresh().catch((error) => {
-          document.getElementById("refreshState").textContent = `dashboard error: ${error.message}`;
+          setRefreshState(`refresh error: ${error.message}`);
         });
-      }, 5000);
+      }, 6000);
     </script>
   </body>
 </html>

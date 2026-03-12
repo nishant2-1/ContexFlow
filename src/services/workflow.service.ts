@@ -2,9 +2,11 @@ import { aiExtractor } from "../integrations/ai/extractor";
 import { slackClient } from "../integrations/slack/slackClient";
 import { trelloClient } from "../integrations/trello/trelloClient";
 import { deadLetterQueue } from "../infrastructure/deadLetterQueue";
+import { workflowEventBus } from "../infrastructure/eventBus";
 import { IdempotencyStore } from "../infrastructure/idempotencyStore";
 import { metricsStore } from "../infrastructure/metrics";
-import { TriggerEvent } from "../types/events";
+import { workflowRunStore } from "../infrastructure/workflowRunStore";
+import { TriggerEvent, WorkflowResult } from "../types/events";
 import { logger } from "../utils/logger";
 import { contextService } from "./context.service";
 
@@ -14,14 +16,20 @@ export class WorkflowService {
   async handleTriggerEvent(event: TriggerEvent): Promise<void> {
     const startedAt = Date.now();
     metricsStore.incrementIngested();
+    workflowRunStore.markIngested(event);
 
     if (this.idempotency.isDuplicate(event.eventId)) {
       metricsStore.incrementDuplicate();
+      workflowRunStore.markDuplicate(event.eventId);
+      workflowEventBus.emitDuplicate(event);
       logger.info({ eventId: event.eventId }, "Duplicate event skipped");
       return;
     }
 
     try {
+      workflowRunStore.markProcessing(event.eventId);
+      workflowEventBus.emitProcessing(event);
+
       const conversation = await contextService.buildConversationContext(event);
       const task = await aiExtractor.extractTask(conversation);
 
@@ -52,11 +60,30 @@ export class WorkflowService {
       }
 
       const latencyMs = Date.now() - startedAt;
+      const result: WorkflowResult = {
+        eventId: event.eventId,
+        trelloCardUrl: card.url,
+        source: event.source,
+        latencyMs,
+        task
+      };
+
       metricsStore.incrementProcessed(latencyMs);
+      workflowRunStore.markSucceeded(result);
+      workflowEventBus.emitSucceeded(result);
       logger.info({ eventId: event.eventId, trelloCardUrl: card.url, latencyMs }, "Workflow completed");
     } catch (error) {
       metricsStore.incrementFailed();
       const reason = error instanceof Error ? error.message : "Unknown error";
+      const failure = {
+        eventId: event.eventId,
+        source: event.source,
+        reason,
+        createdAt: new Date().toISOString()
+      };
+
+      workflowRunStore.markFailed(failure);
+      workflowEventBus.emitFailed(failure);
 
       await deadLetterQueue.enqueue({
         eventId: event.eventId,

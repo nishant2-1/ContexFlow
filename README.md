@@ -55,7 +55,10 @@ flowchart LR
 - Dead-letter queue persisted as JSONL (`data/dead-letter.jsonl`).
 - Replay endpoint for failed events.
 - Ops API (`/api/metrics`, `/api/dead-letters`, `/api/replay/:eventId`).
-- Full-stack operations dashboard at `/` with success rate, latency, and replay controls.
+- Full-stack live command center at `/` with simulation lab, status intelligence, and replay controls.
+- Realtime workflow stream with Server-Sent Events (`/api/stream`).
+- Recent run intelligence endpoint (`/api/runs`) for operational visibility.
+- Synthetic event simulator endpoint (`/api/simulate`) for demos and stress scenarios.
 - AI provider fallback strategy:
   - OpenAI (`gpt-4o-mini`) or Gemini (`gemini-1.5-pro`) via LangChain.
   - Deterministic parser fallback for local demos and resilient behavior.
@@ -133,8 +136,11 @@ https://<ngrok-id>.ngrok-free.app/webhooks/slack/events
 - Health: `GET /api/healthz`
 - Readiness: `GET /api/readyz`
 - Metrics: `GET /api/metrics`
+- Runs: `GET /api/runs?limit=20`
+- Live stream: `GET /api/stream`
 - Dead letters: `GET /api/dead-letters`
 - Replay failed event: `POST /api/replay/:eventId`
+- Trigger simulated event: `POST /api/simulate`
 
 ## Test and Quality Commands
 

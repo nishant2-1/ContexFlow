@@ -64,3 +64,16 @@ curl -X POST http://localhost:3000/webhooks/discord/events \
 ```bash
 curl -X POST http://localhost:3000/api/replay/<event-id>
 ```
+
+## Trigger Simulation Event
+
+```bash
+curl -X POST http://localhost:3000/api/simulate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "source": "slack",
+    "text": "#task @maya improve onboarding completion by next Friday. this is high priority",
+    "assignee": "maya",
+    "priorityHint": "high"
+  }'
+```
