@@ -1,0 +1,8 @@
+{
+  "id": "discord-sample-100",
+  "channelId": "D201",
+  "threadId": "T201",
+  "userId": "DU45",
+  "content": "[task] @leo deliver analytics dashboard by 2026-03-25",
+  "trigger": true
+}

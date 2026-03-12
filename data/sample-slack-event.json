@@ -1,0 +1,12 @@
+{
+  "type": "event_callback",
+  "event_id": "evt-sample-100",
+  "event": {
+    "type": "message",
+    "channel": "C100",
+    "ts": "1712345678.101",
+    "thread_ts": "1712345678.101",
+    "user": "U100",
+    "text": "#task @nora finalize Q2 pricing experiment summary by 2026-03-19. this is urgent for leadership sign-off"
+  }
+}
