@@ -14,7 +14,16 @@ Rules:
 5) confidence should be between 0 and 1.`;
 
 export class AiExtractor {
-  async extractTask(conversation: string): Promise<ExtractedTask> {
+  async extractTask(
+    conversation: string,
+    options?: {
+      promptPrefix?: string;
+    }
+  ): Promise<ExtractedTask> {
+    const promptEnvelope = options?.promptPrefix
+      ? `${systemPrompt}\nContext Policy: ${options.promptPrefix}`
+      : systemPrompt;
+
     if (env.MOCK_AI || (!env.OPENAI_API_KEY && !env.GOOGLE_API_KEY)) {
       return this.extractFallback(conversation);
     }
@@ -28,7 +37,7 @@ export class AiExtractor {
         });
 
         const structured = model.withStructuredOutput(extractedTaskSchema);
-        return this.normalize(await structured.invoke(`${systemPrompt}\n\n${conversation}`));
+        return this.normalize(await structured.invoke(`${promptEnvelope}\n\n${conversation}`));
       }
 
       if (env.OPENAI_API_KEY) {
@@ -39,7 +48,7 @@ export class AiExtractor {
         });
 
         const structured = model.withStructuredOutput(extractedTaskSchema);
-        return this.normalize(await structured.invoke(`${systemPrompt}\n\n${conversation}`));
+        return this.normalize(await structured.invoke(`${promptEnvelope}\n\n${conversation}`));
       }
 
       return this.extractFallback(conversation);

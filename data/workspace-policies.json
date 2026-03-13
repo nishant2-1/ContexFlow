@@ -1,0 +1,19 @@
+{
+  "default": {
+    "promptPrefix": "Prioritize clear ownership, measurable outcomes, and next concrete actions.",
+    "minConfidence": 0.55,
+    "issueProvider": "trello"
+  },
+  "workspaces": {
+    "SIM-SLACK": {
+      "promptPrefix": "Bias toward reliability operations and incident response language.",
+      "minConfidence": 0.5,
+      "issueProvider": "trello"
+    },
+    "enterprise-sales": {
+      "promptPrefix": "Prefer customer-impact framing and revenue-priority tasks.",
+      "minConfidence": 0.65,
+      "issueProvider": "jira"
+    }
+  }
+}

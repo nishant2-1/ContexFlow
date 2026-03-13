@@ -59,6 +59,11 @@ flowchart LR
 - Realtime workflow stream with Server-Sent Events (`/api/stream`).
 - Recent run intelligence endpoint (`/api/runs`) for operational visibility.
 - Synthetic event simulator endpoint (`/api/simulate`) for demos and stress scenarios.
+- Multi-provider ticketing abstraction with runtime routing (`trello` or `jira`).
+- Queue-backed execution modes: inline worker or BullMQ + Redis for retries and throughput.
+- Workspace policy engine with per-workspace prompt prefixes and confidence thresholds.
+- Persistent run journal (`data/workflow-runs.jsonl`) for operational history.
+- Ops RBAC support with viewer/admin API keys for production-safe control endpoints.
 - AI provider fallback strategy:
   - OpenAI (`gpt-4o-mini`) or Gemini (`gemini-1.5-pro`) via LangChain.
   - Deterministic parser fallback for local demos and resilient behavior.
@@ -142,6 +147,11 @@ https://<ngrok-id>.ngrok-free.app/webhooks/slack/events
 - Replay failed event: `POST /api/replay/:eventId`
 - Trigger simulated event: `POST /api/simulate`
 
+If ops keys are configured, send one of these:
+
+- Header: `x-api-key: <OPS_VIEWER_API_KEY or OPS_ADMIN_API_KEY>`
+- For SSE stream in browser: `GET /api/stream?api_key=<key>`
+
 ## Test and Quality Commands
 
 ```bash
@@ -164,13 +174,21 @@ Use this as a “Workflow Intelligence Platform” project and highlight:
 - Event-driven architecture for real-time collaboration systems.
 - LLM-to-business workflow automation with schema-safe outputs.
 - Reliability engineering (DLQ, replay, idempotency, metrics).
-- API integration depth (Slack + Trello + AI providers).
+- API integration depth (Slack + Trello/Jira + AI providers).
 - Full-stack ownership with backend services plus ops UI.
+
+Interview-ready impact statements:
+
+- Designed a provider-agnostic ticketing adapter to support Trello and Jira without changing workflow logic.
+- Built policy-aware AI extraction with workspace-level confidence thresholds to reduce low-quality automation.
+- Introduced queue-backed processing with retry semantics and persistent operational journaling.
 
 ## Future Extensions
 
-- Jira integration (parallel output with Trello).
-- Persistent event store with Redis/Postgres.
-- Queue-backed execution (BullMQ/SQS) for horizontal scaling.
-- Per-workspace AI prompt templates and confidence thresholds.
-- Role-based access for replay/ops controls.
+- [x] Jira integration (runtime-selectable provider abstraction).
+- [x] Queue-backed execution with BullMQ option.
+- [x] Per-workspace prompt templates and confidence thresholds.
+- [x] Role-based access for replay/ops controls.
+- [ ] Full persistent event store with Postgres read models.
+- [ ] Multi-region async execution with SQS/Kafka transport.
+- [ ] Human-in-the-loop approval workflow before ticket creation.

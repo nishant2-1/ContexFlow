@@ -99,6 +99,7 @@ function toSlackTrigger(payload: Record<string, any>): TriggerEvent | null {
     return {
       eventId: payload.event_id ?? randomUUID(),
       source: "slack",
+      workspaceId: payload.team_id ?? env.SLACK_WORKSPACE_ID,
       channelId: event.item.channel,
       threadTs: event.item.ts,
       messageTs: event.item.ts,
@@ -114,6 +115,7 @@ function toSlackTrigger(payload: Record<string, any>): TriggerEvent | null {
     return {
       eventId: payload.event_id ?? randomUUID(),
       source: "slack",
+      workspaceId: payload.team_id ?? env.SLACK_WORKSPACE_ID,
       channelId: event.channel,
       threadTs: event.thread_ts,
       messageTs: event.ts,
@@ -138,6 +140,7 @@ function toDiscordTrigger(payload: Record<string, any>): TriggerEvent | null {
   return {
     eventId: payload.id ?? randomUUID(),
     source: "discord",
+    workspaceId: payload.workspaceId ?? payload.guildId,
     channelId: payload.channelId,
     threadTs: payload.threadId,
     messageTs: payload.messageId,

@@ -1,9 +1,15 @@
 import { TriggerEvent, WorkflowFailureEvent, WorkflowResult, WorkflowRunRecord } from "../types/events";
+import { workflowJournal } from "./workflowJournal";
 
 class WorkflowRunStore {
   private readonly store = new Map<string, WorkflowRunRecord>();
 
-  constructor(private readonly maxRecords = 500) {}
+  constructor(private readonly maxRecords = 500) {
+    const historical = workflowJournal.loadRecent(maxRecords);
+    historical.forEach((record) => {
+      this.store.set(record.eventId, record);
+    });
+  }
 
   markIngested(event: TriggerEvent): void {
     const existing = this.store.get(event.eventId);
@@ -17,11 +23,14 @@ class WorkflowRunStore {
       updatedAt: now,
       simulated: this.isSimulated(event),
       latencyMs: existing?.latencyMs ?? null,
-      trelloCardUrl: existing?.trelloCardUrl ?? null,
+      ticketUrl: existing?.ticketUrl ?? null,
+      issueProvider: existing?.issueProvider ?? null,
       priority: existing?.priority ?? null,
       summary: existing?.summary ?? null,
       reason: existing?.reason ?? null
     });
+
+    this.persist(event.eventId);
 
     this.prune();
   }
@@ -37,6 +46,8 @@ class WorkflowRunStore {
       status: "processing",
       updatedAt: new Date().toISOString()
     });
+
+    this.persist(eventId);
   }
 
   markDuplicate(eventId: string): void {
@@ -50,6 +61,8 @@ class WorkflowRunStore {
       status: "duplicate",
       updatedAt: new Date().toISOString()
     });
+
+    this.persist(eventId);
   }
 
   markSucceeded(result: WorkflowResult): void {
@@ -63,11 +76,14 @@ class WorkflowRunStore {
       status: "succeeded",
       updatedAt: new Date().toISOString(),
       latencyMs: result.latencyMs,
-      trelloCardUrl: result.trelloCardUrl,
+      ticketUrl: result.ticketUrl,
+      issueProvider: result.issueProvider,
       priority: result.task.priority,
       summary: result.task.summary,
       reason: null
     });
+
+    this.persist(result.eventId);
   }
 
   markFailed(failure: WorkflowFailureEvent): void {
@@ -82,6 +98,8 @@ class WorkflowRunStore {
       updatedAt: new Date().toISOString(),
       reason: failure.reason
     });
+
+    this.persist(failure.eventId);
   }
 
   list(limit = 25): WorkflowRunRecord[] {
@@ -111,6 +129,15 @@ class WorkflowRunStore {
 
     const payload = event.rawPayload as Record<string, unknown>;
     return payload.simulated === true;
+  }
+
+  private persist(eventId: string): void {
+    const record = this.store.get(eventId);
+    if (!record) {
+      return;
+    }
+
+    workflowJournal.append(record);
   }
 }
 

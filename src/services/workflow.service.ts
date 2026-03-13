@@ -1,6 +1,6 @@
 import { aiExtractor } from "../integrations/ai/extractor";
+import { createIssueTicket } from "../integrations/issues/issueProvider";
 import { slackClient } from "../integrations/slack/slackClient";
-import { trelloClient } from "../integrations/trello/trelloClient";
 import { deadLetterQueue } from "../infrastructure/deadLetterQueue";
 import { workflowEventBus } from "../infrastructure/eventBus";
 import { IdempotencyStore } from "../infrastructure/idempotencyStore";
@@ -9,6 +9,7 @@ import { workflowRunStore } from "../infrastructure/workflowRunStore";
 import { TriggerEvent, WorkflowResult } from "../types/events";
 import { logger } from "../utils/logger";
 import { contextService } from "./context.service";
+import { workspacePolicyService } from "./workspacePolicy.service";
 
 export class WorkflowService {
   private readonly idempotency = new IdempotencyStore();
@@ -30,15 +31,27 @@ export class WorkflowService {
       workflowRunStore.markProcessing(event.eventId);
       workflowEventBus.emitProcessing(event);
 
+      const policy = workspacePolicyService.resolve(event.workspaceId);
       const conversation = await contextService.buildConversationContext(event);
-      const task = await aiExtractor.extractTask(conversation);
-
-      const card = await trelloClient.createCard({
-        name: `[${task.priority.toUpperCase()}] ${task.title}`,
-        due: task.deadlineIso,
-        labels: [task.priority],
-        desc: this.buildCardDescription(task, conversation, event)
+      const task = await aiExtractor.extractTask(conversation, {
+        promptPrefix: policy.promptPrefix
       });
+
+      if (task.confidence < policy.minConfidence) {
+        throw new Error(
+          `Confidence ${task.confidence.toFixed(2)} below workspace threshold ${policy.minConfidence.toFixed(2)}`
+        );
+      }
+
+      const ticket = await createIssueTicket(
+        {
+          title: `[${task.priority.toUpperCase()}] ${task.title}`,
+          dueIso: task.deadlineIso,
+          description: this.buildCardDescription(task, conversation, event),
+          priority: task.priority
+        },
+        policy.issueProvider
+      );
 
       metricsStore.incrementTickets();
 
@@ -49,8 +62,8 @@ export class WorkflowService {
             channel: event.channelId,
             threadTs,
             text: [
-              "ContextFlow created a Trello card for this thread.",
-              `Card: ${card.url}`,
+              `ContextFlow created a ${ticket.provider.toUpperCase()} ticket for this thread.`,
+              `Ticket: ${ticket.url}`,
               `Priority: ${task.priority.toUpperCase()}`,
               `Assignee: ${task.assignee ?? "Unassigned"}`,
               `Deadline: ${task.deadlineIso ?? "Not specified"}`
@@ -62,7 +75,8 @@ export class WorkflowService {
       const latencyMs = Date.now() - startedAt;
       const result: WorkflowResult = {
         eventId: event.eventId,
-        trelloCardUrl: card.url,
+        ticketUrl: ticket.url,
+        issueProvider: ticket.provider,
         source: event.source,
         latencyMs,
         task
@@ -71,7 +85,10 @@ export class WorkflowService {
       metricsStore.incrementProcessed(latencyMs);
       workflowRunStore.markSucceeded(result);
       workflowEventBus.emitSucceeded(result);
-      logger.info({ eventId: event.eventId, trelloCardUrl: card.url, latencyMs }, "Workflow completed");
+      logger.info(
+        { eventId: event.eventId, issueProvider: ticket.provider, ticketUrl: ticket.url, latencyMs },
+        "Workflow completed"
+      );
     } catch (error) {
       metricsStore.incrementFailed();
       const reason = error instanceof Error ? error.message : "Unknown error";
@@ -135,6 +152,7 @@ export class WorkflowService {
       "",
       "Source:",
       `- Platform: ${event.source}`,
+      `- Workspace: ${event.workspaceId ?? "default"}`,
       `- Event ID: ${event.eventId}`,
       `- Timestamp: ${event.createdAt}`,
       "",

@@ -37,14 +37,28 @@ const envSchema = z.object({
   OPENAI_API_KEY: z.string().optional(),
   GOOGLE_API_KEY: z.string().optional(),
   MOCK_AI: boolString,
+  ISSUE_PROVIDER: z.enum(["trello", "jira"]).default("trello"),
   TRELLO_API_KEY: z.string().optional(),
   TRELLO_TOKEN: z.string().optional(),
   TRELLO_LIST_ID: z.string().optional(),
+  JIRA_BASE_URL: z.string().optional(),
+  JIRA_USER_EMAIL: z.string().optional(),
+  JIRA_API_TOKEN: z.string().optional(),
+  JIRA_PROJECT_KEY: z.string().optional(),
+  JIRA_ISSUE_TYPE: z.string().default("Task"),
   ENABLE_DISCORD: boolString,
   ENABLE_SLACK: boolString,
   REQUIRED_REACTION: z.string().default("white_check_mark"),
   PIPELINE_TIMEOUT_MS: z.coerce.number().int().positive().default(30000),
-  MAX_MESSAGES_FOR_CONTEXT: z.coerce.number().int().positive().max(100).default(30)
+  MAX_MESSAGES_FOR_CONTEXT: z.coerce.number().int().positive().max(100).default(30),
+  QUEUE_DRIVER: z.enum(["inline", "bullmq"]).default("inline"),
+  REDIS_URL: z.string().optional(),
+  QUEUE_CONCURRENCY: z.coerce.number().int().positive().max(50).default(4),
+  QUEUE_ATTEMPTS: z.coerce.number().int().positive().max(10).default(3),
+  WORKSPACE_POLICY_FILE: z.string().default("data/workspace-policies.json"),
+  WORKFLOW_RUN_LOG_PATH: z.string().default("data/workflow-runs.jsonl"),
+  OPS_VIEWER_API_KEY: z.string().optional(),
+  OPS_ADMIN_API_KEY: z.string().optional()
 });
 
 export const env = envSchema.parse(process.env);

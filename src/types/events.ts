@@ -3,6 +3,7 @@ export type SourcePlatform = "slack" | "discord";
 export interface TriggerEvent {
   eventId: string;
   source: SourcePlatform;
+  workspaceId?: string;
   channelId?: string;
   threadTs?: string;
   messageTs?: string;
@@ -25,7 +26,8 @@ export interface ProcessedTask {
 
 export interface WorkflowResult {
   eventId: string;
-  trelloCardUrl: string;
+  ticketUrl: string;
+  issueProvider: "trello" | "jira";
   task: ProcessedTask;
   source: SourcePlatform;
   latencyMs: number;
@@ -53,7 +55,8 @@ export interface WorkflowRunRecord {
   updatedAt: string;
   simulated: boolean;
   latencyMs: number | null;
-  trelloCardUrl: string | null;
+  ticketUrl: string | null;
+  issueProvider: "trello" | "jira" | null;
   priority: ProcessedTask["priority"] | null;
   summary: string | null;
   reason: string | null;

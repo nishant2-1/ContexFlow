@@ -69,11 +69,19 @@ curl -X POST http://localhost:3000/api/replay/<event-id>
 
 ```bash
 curl -X POST http://localhost:3000/api/simulate \
+  -H "x-api-key: <OPS_ADMIN_API_KEY>" \
   -H "Content-Type: application/json" \
   -d '{
     "source": "slack",
     "text": "#task @maya improve onboarding completion by next Friday. this is high priority",
     "assignee": "maya",
-    "priorityHint": "high"
+    "priorityHint": "high",
+    "workspaceId": "enterprise-sales"
   }'
+```
+
+## Live Stream (Secure Mode)
+
+```bash
+curl -N "http://localhost:3000/api/stream?api_key=<OPS_VIEWER_API_KEY>"
 ```

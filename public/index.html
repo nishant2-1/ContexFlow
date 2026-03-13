@@ -438,6 +438,17 @@
               </div>
             </div>
 
+            <div class="split">
+              <div>
+                <label for="simWorkspace">workspace id (policy routing)</label>
+                <input id="simWorkspace" placeholder="SIM-SLACK" />
+              </div>
+              <div>
+                <label for="opsKey">ops api key (optional)</label>
+                <input id="opsKey" placeholder="viewer/admin key" />
+              </div>
+            </div>
+
             <button class="btn" type="submit" id="simulateBtn">launch simulation</button>
           </form>
 
@@ -485,7 +496,8 @@
     <script>
       const state = {
         activities: [],
-        stream: null
+        stream: null,
+        opsKey: ""
       };
 
       function escapeHtml(value) {
@@ -498,7 +510,18 @@
       }
 
       async function getJson(url, options) {
-        const response = await fetch(url, options);
+        const headers = {
+          ...(options && options.headers ? options.headers : {})
+        };
+
+        if (state.opsKey) {
+          headers["x-api-key"] = state.opsKey;
+        }
+
+        const response = await fetch(url, {
+          ...(options || {}),
+          headers
+        });
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}`);
         }
@@ -533,7 +556,7 @@
             const source = item.payload.source || "system";
             const extra =
               item.type === "succeeded"
-                ? `card: ${item.payload.trelloCardUrl || "n/a"}`
+                ? `ticket: ${item.payload.ticketUrl || "n/a"} (${item.payload.issueProvider || "unknown"})`
                 : item.type === "failed"
                   ? `reason: ${item.payload.reason || "unknown"}`
                   : `text: ${(item.payload.text || "").slice(0, 80)}`;
@@ -652,7 +675,10 @@
           state.stream.close();
         }
 
-        const stream = new EventSource("/api/stream");
+        const streamUrl = state.opsKey
+          ? `/api/stream?api_key=${encodeURIComponent(state.opsKey)}`
+          : "/api/stream";
+        const stream = new EventSource(streamUrl);
         state.stream = stream;
 
         const streamState = document.getElementById("streamState");
@@ -691,7 +717,8 @@
             text: document.getElementById("simText").value.trim(),
             assignee: document.getElementById("simAssignee").value.trim() || undefined,
             deadlineIso: document.getElementById("simDeadline").value.trim() || undefined,
-            priorityHint: document.getElementById("simPriority").value || undefined
+            priorityHint: document.getElementById("simPriority").value || undefined,
+            workspaceId: document.getElementById("simWorkspace").value.trim() || undefined
           };
 
           button.disabled = true;
@@ -737,6 +764,27 @@
         });
       }
 
+      function wireOpsKey() {
+        const input = document.getElementById("opsKey");
+        const stored = window.localStorage.getItem("contextflow_ops_key") || "";
+        state.opsKey = stored;
+        input.value = stored;
+
+        input.addEventListener("change", () => {
+          state.opsKey = input.value.trim();
+
+          if (state.opsKey) {
+            window.localStorage.setItem("contextflow_ops_key", state.opsKey);
+          } else {
+            window.localStorage.removeItem("contextflow_ops_key");
+          }
+
+          connectStream();
+          void refresh();
+        });
+      }
+
+      wireOpsKey();
       connectStream();
       wireSimulationForm();
       renderFeed();
