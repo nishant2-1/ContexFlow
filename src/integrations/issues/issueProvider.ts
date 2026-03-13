@@ -21,6 +21,15 @@ export async function createIssueTicket(
   input: IssueTicketInput,
   providerOverride?: IssueProviderName
 ): Promise<IssueTicketResult> {
+  if (env.MOCK_ISSUE) {
+    const fakeId = `MOCK-${Date.now()}`;
+    return {
+      id: fakeId,
+      url: `http://localhost:3000/mock-ticket/${fakeId}`,
+      provider: "trello"
+    };
+  }
+
   const provider = providerOverride ?? env.ISSUE_PROVIDER;
 
   if (provider === "jira") {

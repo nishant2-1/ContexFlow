@@ -2,7 +2,29 @@
 
 AI-Powered Event-Driven Workflow for Business Communication.
 
-ContextFlow monitors Slack/Discord events, synthesizes messy conversations into structured work using LLMs, creates Trello tickets automatically, and posts confirmation back into the source thread.
+ContextFlow monitors Slack/Discord events, synthesizes messy conversations into structured work using LLMs, creates Trello or Jira tickets automatically, and posts confirmation back into the source thread.
+
+## What This Is In Real Life
+
+ContextFlow is a workflow assistant for teams that lose important tasks inside chat.
+
+- A product manager drops a bug report in Slack and nobody creates the ticket.
+- A client request gets buried in a long async thread.
+- A handoff message includes action items, deadlines, and owners, but it never reaches the tracker.
+- A support or operations channel contains urgent work, but triage is inconsistent.
+
+This project turns those noisy conversations into structured tasks automatically, so work moves from chat into execution.
+
+## Why I Built This
+
+I built ContextFlow to solve a common problem in remote teams: communication happens in chat, but execution happens in tools like Trello or Jira. That gap causes missed tasks, slow handoffs, and manual copy-paste work.
+
+The goal of this project is to show how AI can be used in a practical, production-oriented way:
+
+- convert unstructured messages into structured work
+- reduce manual project coordination
+- improve traceability from conversation to ticket
+- add reliability controls so automation is observable and safe
 
 ## Why This Project Stands Out
 
@@ -70,6 +92,90 @@ flowchart LR
 - CI pipeline with typecheck, build, and tests.
 - Dockerized runtime for consistent deployment.
 
+## Real-World Use Cases
+
+- Engineering teams: convert bug reports, outage notes, and release blockers from Slack into trackable tickets.
+- Startup teams: turn founder or client messages into tasks without needing a dedicated project coordinator.
+- Agencies: capture client change requests from chat and route them into a shared delivery board.
+- Operations teams: transform incident updates into follow-up actions with owners and deadlines.
+- Student or university teams: use chat as the input surface and still keep project work organized.
+
+## Demo Mode
+
+You can run this project without Slack, Trello, Jira, or paid AI accounts.
+
+- `MOCK_AI=true` keeps extraction local and predictable for demos.
+- `MOCK_ISSUE=true` creates mock ticket URLs so the full workflow still succeeds.
+- `/api/simulate` and the dashboard let you test realistic scenarios end-to-end.
+
+This makes the project easy to show on GitHub, in interviews, or in a portfolio without external setup.
+
+## What To Put In .env
+
+For most local usage, you only need demo settings.
+
+Minimum local setup that always runs:
+
+```env
+PORT=3000
+NODE_ENV=development
+BASE_URL=http://localhost:3000
+MOCK_AI=true
+MOCK_ISSUE=true
+ISSUE_PROVIDER=trello
+QUEUE_DRIVER=inline
+```
+
+With this setup:
+
+- no Slack app is required
+- no Trello account is required
+- no Jira account is required
+- no OpenAI or Gemini key is required
+- the dashboard and simulation flow still work end-to-end
+
+Only add real API keys when you want live integrations.
+
+## Where To Find API Keys
+
+- Slack:
+  create an app at https://api.slack.com/apps
+  get `SLACK_SIGNING_SECRET` from `Basic Information`
+  get `SLACK_BOT_TOKEN` from `OAuth & Permissions`
+- OpenAI:
+  create `OPENAI_API_KEY` at https://platform.openai.com/api-keys
+- Gemini:
+  create `GOOGLE_API_KEY` at https://aistudio.google.com/app/apikey
+- Trello:
+  get `TRELLO_API_KEY` and `TRELLO_TOKEN` at https://trello.com/app-key
+- Jira:
+  create `JIRA_API_TOKEN` at https://id.atlassian.com/manage-profile/security/api-tokens
+  `JIRA_BASE_URL` looks like `https://your-company.atlassian.net`
+
+## Which Variables Are Actually Required
+
+- For demo mode:
+  none beyond the basic local settings above
+- For real AI extraction:
+  `MOCK_AI=false` plus either `OPENAI_API_KEY` or `GOOGLE_API_KEY`
+- For real Trello tickets:
+  `MOCK_ISSUE=false`, `ISSUE_PROVIDER=trello`, `TRELLO_API_KEY`, `TRELLO_TOKEN`, `TRELLO_LIST_ID`
+- For real Jira tickets:
+  `MOCK_ISSUE=false`, `ISSUE_PROVIDER=jira`, `JIRA_BASE_URL`, `JIRA_USER_EMAIL`, `JIRA_API_TOKEN`, `JIRA_PROJECT_KEY`
+- For real Slack ingestion:
+  `SLACK_SIGNING_SECRET` and `SLACK_BOT_TOKEN`
+
+## How To Keep It Running Locally
+
+Use demo mode for reliable local usage:
+
+- keep `MOCK_AI=true`
+- keep `MOCK_ISSUE=true`
+- keep `QUEUE_DRIVER=inline`
+- start with `npm run dev`
+
+If you close the terminal, start it again with `npm run dev`. For a real always-on deployment, run the built app on a host like Render, Railway, or Fly.io.
+
 ## Tech Stack
 
 - Runtime: Node.js, Express, TypeScript
@@ -117,7 +223,7 @@ npm start
   - `OPENAI_API_KEY`, or
   - `GOOGLE_API_KEY`.
 
-For local demo without AI keys, keep `MOCK_AI=true` in `.env`.
+For local demo without external accounts, keep `MOCK_AI=true` and `MOCK_ISSUE=true` in `.env`.
 
 ## Webhook Endpoints
 
@@ -182,6 +288,16 @@ Interview-ready impact statements:
 - Designed a provider-agnostic ticketing adapter to support Trello and Jira without changing workflow logic.
 - Built policy-aware AI extraction with workspace-level confidence thresholds to reduce low-quality automation.
 - Introduced queue-backed processing with retry semantics and persistent operational journaling.
+
+## How To Explain This On GitHub
+
+Short version:
+
+`ContextFlow is an AI workflow automation platform that turns chat conversations into structured project tasks.`
+
+Longer version:
+
+`I built ContextFlow to solve a real workflow problem: teams discuss work in Slack or Discord, but execution still depends on someone manually creating and tracking tasks. This project uses AI to extract structured intent from chat, route it into a ticketing system, and provide operational visibility through replay, queues, journaling, and a live dashboard.`
 
 ## Future Extensions
 

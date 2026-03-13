@@ -37,6 +37,7 @@ const envSchema = z.object({
   OPENAI_API_KEY: z.string().optional(),
   GOOGLE_API_KEY: z.string().optional(),
   MOCK_AI: boolString,
+  MOCK_ISSUE: boolString,
   ISSUE_PROVIDER: z.enum(["trello", "jira"]).default("trello"),
   TRELLO_API_KEY: z.string().optional(),
   TRELLO_TOKEN: z.string().optional(),

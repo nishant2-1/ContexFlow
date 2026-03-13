@@ -16,9 +16,14 @@ export class DeadLetterQueue {
   private cache = new Map<string, DeadLetterRecord>();
 
   async enqueue(record: DeadLetterRecord): Promise<void> {
-    await fs.mkdir(path.dirname(deadLetterFilePath), { recursive: true });
-    await fs.appendFile(deadLetterFilePath, `${JSON.stringify(record)}\n`, "utf8");
     this.cache.set(record.eventId, record);
+
+    try {
+      await fs.mkdir(path.dirname(deadLetterFilePath), { recursive: true });
+      await fs.appendFile(deadLetterFilePath, `${JSON.stringify(record)}\n`, "utf8");
+    } catch {
+      // Serverless platforms may not provide persistent writable disk.
+    }
   }
 
   async list(limit = 50): Promise<DeadLetterRecord[]> {

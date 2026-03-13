@@ -6,6 +6,8 @@ import { opsRouter } from "./routes/ops.routes";
 import { webhookRouter } from "./routes/webhook.routes";
 import { logger } from "./utils/logger";
 
+const publicDir = path.resolve(__dirname, "../public");
+
 export function createApp() {
   const app = express();
 
@@ -22,10 +24,10 @@ export function createApp() {
   app.use("/api", healthRouter);
   app.use("/api", opsRouter);
 
-  app.use(express.static(path.resolve(process.cwd(), "public")));
+  app.use(express.static(publicDir));
 
   app.get(/.*/, (_req, res) => {
-    res.sendFile(path.resolve(process.cwd(), "public", "index.html"));
+    res.sendFile(path.resolve(publicDir, "index.html"));
   });
 
   app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
@@ -35,3 +37,5 @@ export function createApp() {
 
   return app;
 }
+
+export default createApp();
