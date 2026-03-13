@@ -4,6 +4,53 @@ AI-Powered Event-Driven Workflow for Business Communication.
 
 ContextFlow monitors Slack/Discord events, synthesizes messy conversations into structured work using LLMs, creates Trello or Jira tickets automatically, and posts confirmation back into the source thread.
 
+## Documentation Index
+
+- [docs/TECH_STACK_DEEP_DIVE.md](docs/TECH_STACK_DEEP_DIVE.md): Deep explanation of each technology choice, trade-offs, and implementation details.
+- [docs/SYSTEM_ARCHITECTURE.md](docs/SYSTEM_ARCHITECTURE.md): Component architecture and end-to-end runtime topology.
+- [docs/SYSTEM_DESIGN.md](docs/SYSTEM_DESIGN.md): Functional and non-functional system design decisions.
+- [docs/WORKFLOW_LIFECYCLE.md](docs/WORKFLOW_LIFECYCLE.md): Step-by-step workflow execution and lifecycle transitions.
+- [docs/UI_UX_SYSTEM.md](docs/UI_UX_SYSTEM.md): Visual design language, interaction model, motion system, and accessibility notes.
+- [docs/demo-requests.md](docs/demo-requests.md): Sample simulation requests for demos.
+
+## How The System Works
+
+1. A trigger event is received from Slack, Discord, or simulation endpoint.
+2. Signature verification guards the webhook trust boundary.
+3. Payload is normalized into a typed TriggerEvent contract.
+4. Event bus emits ingestion lifecycle and queue driver schedules execution.
+5. Workflow service builds context and extracts structured task intent with AI.
+6. Workspace policy validates confidence threshold and provider routing.
+7. Provider adapter creates Trello/Jira issue, then workflow publishes success/failure lifecycle events.
+8. Metrics, run history, dead-letter records, and SSE stream update the dashboard in realtime.
+
+Deep execution details are documented in [docs/WORKFLOW_LIFECYCLE.md](docs/WORKFLOW_LIFECYCLE.md).
+
+## Hiring Manager Snapshot
+
+ContextFlow demonstrates deep, practical engineering across backend systems, AI orchestration, reliability engineering, integration development, and operations UX.
+
+- Backend architecture: event-driven processing, queue abstraction, idempotency, dead-lettering, replay.
+- AI engineering: provider-agnostic extraction, schema validation, confidence gating, deterministic fallback.
+- Integration engineering: Slack, Trello, Jira adapters with normalized contracts.
+- Production operations: observability APIs, realtime stream, run history intelligence, RBAC.
+- Full-stack execution: simulation-first command center with replay and live status telemetry.
+
+## Tech Stack Mastery Map
+
+| Layer | Technologies | What It Demonstrates |
+|---|---|---|
+| Runtime and API | Node.js, Express 5, TypeScript | Async event ingestion, typed contracts, middleware-driven architecture |
+| AI Orchestration | LangChain, OpenAI, Gemini, Zod | Structured extraction with validation and provider portability |
+| Integrations | Slack API, Trello API, Jira API | Multi-system interoperability with adapter-based routing |
+| Reliability | Event bus, idempotency store, dead-letter queue, replay API | Fault isolation, retry workflows, duplicate protection |
+| Queueing | Inline worker, BullMQ, Redis option | Local simplicity plus production scaling path |
+| Observability | Metrics API, run journal, SSE stream, live dashboard | Operational visibility and real-time diagnostics |
+| Security | Signature verification, ops RBAC keys | Trust boundary validation and controlled admin actions |
+| Delivery | Docker, GitHub Actions, Vercel-compatible demo mode | CI quality gates and cloud deployment readiness |
+
+For detailed implementation depth, read [docs/TECH_STACK_DEEP_DIVE.md](docs/TECH_STACK_DEEP_DIVE.md).
+
 ## What This Is In Real Life
 
 ContextFlow is a workflow assistant for teams that lose important tasks inside chat.

@@ -21,6 +21,7 @@
         --amber: #f59e0b;
         --rose: #fb7185;
         --lime: #84cc16;
+        --violet: #7c83ff;
         --bg1: #0b1020;
         --bg2: #111a33;
       }
@@ -38,12 +39,60 @@
           radial-gradient(circle at 10% 14%, rgba(45, 212, 191, 0.2), transparent 35%),
           radial-gradient(circle at 88% 75%, rgba(245, 158, 11, 0.2), transparent 38%),
           linear-gradient(145deg, var(--bg1), var(--bg2) 45%, #0c152b 100%);
+        overflow-x: hidden;
+      }
+
+      .bg-fx {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+        pointer-events: none;
+      }
+
+      .bg-grid {
+        position: fixed;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
+        background-image:
+          linear-gradient(rgba(165, 185, 215, 0.07) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(165, 185, 215, 0.07) 1px, transparent 1px);
+        background-size: 46px 46px;
+        mask-image: radial-gradient(circle at 50% 42%, black 28%, transparent 85%);
+      }
+
+      .bg-glow {
+        position: fixed;
+        width: 58vw;
+        height: 58vw;
+        border-radius: 999px;
+        filter: blur(72px);
+        opacity: 0.2;
+        pointer-events: none;
+        z-index: 1;
+        animation: drift 12s ease-in-out infinite alternate;
+      }
+
+      .bg-glow.left {
+        left: -12vw;
+        top: -18vw;
+        background: radial-gradient(circle at center, rgba(45, 212, 191, 0.7), transparent 62%);
+      }
+
+      .bg-glow.right {
+        right: -18vw;
+        bottom: -20vw;
+        background: radial-gradient(circle at center, rgba(124, 131, 255, 0.65), transparent 62%);
       }
 
       .shell {
         max-width: 1280px;
         margin: 0 auto;
         padding: 24px 18px 52px;
+        position: relative;
+        z-index: 2;
       }
 
       .hero {
@@ -80,6 +129,7 @@
         padding: 7px 13px;
         font-family: "JetBrains Mono", monospace;
         font-size: 0.78rem;
+        box-shadow: inset 0 0 0 1px rgba(45, 212, 191, 0.22);
       }
 
       .layout {
@@ -94,8 +144,16 @@
         border: 1px solid var(--border);
         border-radius: 16px;
         padding: 16px;
-        backdrop-filter: blur(9px);
-        animation: rise 420ms ease both;
+        backdrop-filter: blur(12px);
+        animation: rise 520ms ease both;
+        box-shadow: 0 24px 50px rgba(3, 7, 20, 0.38), inset 0 1px 0 rgba(198, 214, 255, 0.08);
+        transition: transform 220ms ease, border-color 220ms ease, box-shadow 220ms ease;
+      }
+
+      .card:hover {
+        transform: translateY(-4px);
+        border-color: rgba(130, 166, 224, 0.45);
+        box-shadow: 0 30px 58px rgba(3, 7, 20, 0.45), inset 0 1px 0 rgba(198, 214, 255, 0.15);
       }
 
       .stats {
@@ -123,6 +181,7 @@
         margin: 8px 0 0;
         font-size: 1.6rem;
         font-weight: 700;
+        text-shadow: 0 0 16px rgba(45, 212, 191, 0.2);
       }
 
       .lab {
@@ -188,6 +247,15 @@
         color: var(--ink);
         padding: 10px 11px;
         font-family: "JetBrains Mono", monospace;
+        transition: border-color 160ms ease, box-shadow 160ms ease, transform 120ms ease;
+      }
+
+      textarea:focus,
+      select:focus,
+      input:focus {
+        outline: none;
+        border-color: rgba(45, 212, 191, 0.7);
+        box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.16);
       }
 
       textarea {
@@ -203,12 +271,17 @@
 
       .btn {
         margin-top: 12px;
-        background: linear-gradient(120deg, rgba(45, 212, 191, 0.3), rgba(132, 204, 22, 0.2));
+        background: linear-gradient(120deg, rgba(45, 212, 191, 0.3), rgba(124, 131, 255, 0.25));
         cursor: pointer;
       }
 
       .btn:hover {
         border-color: rgba(45, 212, 191, 0.72);
+        transform: translateY(-1px);
+      }
+
+      .btn:active {
+        transform: translateY(1px);
       }
 
       .quick {
@@ -222,6 +295,7 @@
         width: auto;
         font-size: 0.74rem;
         cursor: pointer;
+        background: rgba(17, 24, 44, 0.9);
       }
 
       .feed {
@@ -239,6 +313,7 @@
         border-radius: 12px;
         padding: 10px;
         background: rgba(7, 12, 24, 0.58);
+        animation: rise 300ms ease both;
       }
 
       .tag {
@@ -324,6 +399,26 @@
         cursor: pointer;
       }
 
+      .card:nth-child(1) {
+        animation-delay: 30ms;
+      }
+
+      .card:nth-child(2) {
+        animation-delay: 90ms;
+      }
+
+      .card:nth-child(3) {
+        animation-delay: 150ms;
+      }
+
+      .card:nth-child(4) {
+        animation-delay: 210ms;
+      }
+
+      .card:nth-child(5) {
+        animation-delay: 270ms;
+      }
+
       .foot {
         margin-top: 10px;
         color: var(--muted);
@@ -354,9 +449,30 @@
           transform: translateY(0);
         }
       }
+
+      @keyframes drift {
+        from {
+          transform: translateY(0) translateX(0) scale(1);
+        }
+        to {
+          transform: translateY(2.5vh) translateX(1.2vw) scale(1.04);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .card,
+        .feed-item,
+        .bg-glow {
+          animation: none;
+        }
+      }
     </style>
   </head>
   <body>
+    <canvas id="bgFx" class="bg-fx" aria-hidden="true"></canvas>
+    <div class="bg-grid" aria-hidden="true"></div>
+    <div class="bg-glow left" aria-hidden="true"></div>
+    <div class="bg-glow right" aria-hidden="true"></div>
     <main class="shell">
       <section class="hero">
         <div>
@@ -499,6 +615,186 @@
         stream: null,
         opsKey: ""
       };
+
+      function initBackgroundFx() {
+        const canvas = document.getElementById("bgFx");
+        if (!canvas) {
+          return;
+        }
+
+        const gl = canvas.getContext("webgl", { alpha: true, antialias: true });
+        if (!gl) {
+          initCanvasFallback(canvas);
+          return;
+        }
+
+        const vertexSource = `
+          attribute vec2 position;
+          void main() {
+            gl_Position = vec4(position, 0.0, 1.0);
+          }
+        `;
+
+        const fragmentSource = `
+          precision mediump float;
+          uniform vec2 uResolution;
+          uniform float uTime;
+
+          float wave(vec2 p) {
+            return sin(p.x * 3.4 + uTime * 0.36) + cos(p.y * 4.8 - uTime * 0.31);
+          }
+
+          void main() {
+            vec2 uv = gl_FragCoord.xy / uResolution.xy;
+            vec2 p = uv * 2.0 - 1.0;
+            p.x *= uResolution.x / uResolution.y;
+
+            float w = wave(p);
+            float glow = exp(-2.8 * abs(w));
+            float pulse = 0.5 + 0.5 * sin(uTime * 0.13 + p.x * 1.8 - p.y * 1.1);
+
+            vec3 base = vec3(0.03, 0.06, 0.12);
+            vec3 cyan = vec3(0.10, 0.73, 0.66);
+            vec3 violet = vec3(0.42, 0.46, 0.92);
+            vec3 amber = vec3(0.90, 0.52, 0.24);
+
+            vec3 color = base
+              + cyan * glow * 0.30
+              + violet * pow(pulse, 3.0) * 0.16
+              + amber * max(0.0, sin(uTime * 0.11 + p.x * 2.2)) * 0.05;
+
+            gl_FragColor = vec4(color, 0.95);
+          }
+        `;
+
+        const vertexShader = compileShader(gl, gl.VERTEX_SHADER, vertexSource);
+        const fragmentShader = compileShader(gl, gl.FRAGMENT_SHADER, fragmentSource);
+
+        if (!vertexShader || !fragmentShader) {
+          initCanvasFallback(canvas);
+          return;
+        }
+
+        const program = gl.createProgram();
+        if (!program) {
+          initCanvasFallback(canvas);
+          return;
+        }
+
+        gl.attachShader(program, vertexShader);
+        gl.attachShader(program, fragmentShader);
+        gl.linkProgram(program);
+
+        if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+          initCanvasFallback(canvas);
+          return;
+        }
+
+        const buffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+        gl.bufferData(
+          gl.ARRAY_BUFFER,
+          new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]),
+          gl.STATIC_DRAW
+        );
+
+        const positionLoc = gl.getAttribLocation(program, "position");
+        const timeLoc = gl.getUniformLocation(program, "uTime");
+        const resolutionLoc = gl.getUniformLocation(program, "uResolution");
+
+        function resize() {
+          const ratio = window.devicePixelRatio || 1;
+          canvas.width = Math.floor(window.innerWidth * ratio);
+          canvas.height = Math.floor(window.innerHeight * ratio);
+          canvas.style.width = `${window.innerWidth}px`;
+          canvas.style.height = `${window.innerHeight}px`;
+          gl.viewport(0, 0, canvas.width, canvas.height);
+        }
+
+        function render(now) {
+          gl.useProgram(program);
+          gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+          gl.enableVertexAttribArray(positionLoc);
+          gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
+
+          if (resolutionLoc) {
+            gl.uniform2f(resolutionLoc, canvas.width, canvas.height);
+          }
+          if (timeLoc) {
+            gl.uniform1f(timeLoc, now * 0.001);
+          }
+
+          gl.drawArrays(gl.TRIANGLES, 0, 6);
+          requestAnimationFrame(render);
+        }
+
+        window.addEventListener("resize", resize);
+        resize();
+        requestAnimationFrame(render);
+      }
+
+      function compileShader(gl, type, source) {
+        const shader = gl.createShader(type);
+        if (!shader) {
+          return null;
+        }
+        gl.shaderSource(shader, source);
+        gl.compileShader(shader);
+        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+          return null;
+        }
+        return shader;
+      }
+
+      function initCanvasFallback(canvas) {
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          return;
+        }
+
+        function resize() {
+          const ratio = window.devicePixelRatio || 1;
+          canvas.width = Math.floor(window.innerWidth * ratio);
+          canvas.height = Math.floor(window.innerHeight * ratio);
+          canvas.style.width = `${window.innerWidth}px`;
+          canvas.style.height = `${window.innerHeight}px`;
+          ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+        }
+
+        function draw(now) {
+          const t = now * 0.001;
+          const w = window.innerWidth;
+          const h = window.innerHeight;
+          ctx.clearRect(0, 0, w, h);
+
+          const g1 = ctx.createRadialGradient(w * 0.18, h * 0.24, 20, w * 0.18, h * 0.24, w * 0.6);
+          g1.addColorStop(0, "rgba(45, 212, 191, 0.24)");
+          g1.addColorStop(1, "rgba(45, 212, 191, 0)");
+
+          const g2 = ctx.createRadialGradient(w * 0.84, h * 0.72, 20, w * 0.84, h * 0.72, w * 0.55);
+          g2.addColorStop(0, "rgba(124, 131, 255, 0.2)");
+          g2.addColorStop(1, "rgba(124, 131, 255, 0)");
+
+          ctx.fillStyle = g1;
+          ctx.fillRect(0, 0, w, h);
+          ctx.fillStyle = g2;
+          ctx.fillRect(0, 0, w, h);
+
+          ctx.globalAlpha = 0.16;
+          for (let i = 0; i < 16; i += 1) {
+            const x = (w / 16) * i + Math.sin(t * 0.7 + i) * 14;
+            ctx.fillStyle = "rgba(160, 178, 219, 0.2)";
+            ctx.fillRect(x, 0, 1, h);
+          }
+          ctx.globalAlpha = 1;
+
+          requestAnimationFrame(draw);
+        }
+
+        window.addEventListener("resize", resize);
+        resize();
+        requestAnimationFrame(draw);
+      }
 
       function escapeHtml(value) {
         return String(value)
@@ -784,6 +1080,7 @@
         });
       }
 
+      initBackgroundFx();
       wireOpsKey();
       connectStream();
       wireSimulationForm();
