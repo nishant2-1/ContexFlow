@@ -1,4 +1,5 @@
 import { TriggerEvent, WorkflowFailureEvent, WorkflowResult, WorkflowRunRecord } from "../types/events";
+import { postgresReadModelStore } from "./postgresReadModelStore";
 import { workflowJournal } from "./workflowJournal";
 
 class WorkflowRunStore {
@@ -9,6 +10,8 @@ class WorkflowRunStore {
     historical.forEach((record) => {
       this.store.set(record.eventId, record);
     });
+
+    void this.hydrateFromPostgres();
   }
 
   markIngested(event: TriggerEvent): void {
@@ -18,6 +21,7 @@ class WorkflowRunStore {
     this.store.set(event.eventId, {
       eventId: event.eventId,
       source: event.source,
+      workspaceId: event.workspaceId ?? null,
       status: "ingested",
       createdAt: existing?.createdAt ?? now,
       updatedAt: now,
@@ -102,10 +106,51 @@ class WorkflowRunStore {
     this.persist(failure.eventId);
   }
 
+  markAwaitingApproval(eventId: string, approvalId: string): void {
+    const record = this.store.get(eventId);
+    if (!record) {
+      return;
+    }
+
+    this.store.set(eventId, {
+      ...record,
+      status: "awaiting_approval",
+      updatedAt: new Date().toISOString(),
+      reason: `Awaiting approval (${approvalId})`
+    });
+
+    this.persist(eventId);
+  }
+
+  markRejected(eventId: string, reason: string): void {
+    const record = this.store.get(eventId);
+    if (!record) {
+      return;
+    }
+
+    this.store.set(eventId, {
+      ...record,
+      status: "rejected",
+      updatedAt: new Date().toISOString(),
+      reason
+    });
+
+    this.persist(eventId);
+  }
+
   list(limit = 25): WorkflowRunRecord[] {
     return [...this.store.values()]
       .sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt))
       .slice(0, limit);
+  }
+
+  async listPersistent(limit = 25): Promise<WorkflowRunRecord[]> {
+    const persisted = await postgresReadModelStore.listRuns(limit);
+    if (persisted && persisted.length > 0) {
+      return persisted;
+    }
+
+    return this.list(limit);
   }
 
   private prune(): void {
@@ -138,6 +183,25 @@ class WorkflowRunStore {
     }
 
     workflowJournal.append(record);
+    void postgresReadModelStore.upsertRun(record);
+    void postgresReadModelStore.appendLifecycleEvent({
+      eventId: record.eventId,
+      source: record.source,
+      workspaceId: record.workspaceId,
+      eventType: `run.${record.status}`,
+      payload: record
+    });
+  }
+
+  private async hydrateFromPostgres(): Promise<void> {
+    const persisted = await postgresReadModelStore.listRuns(this.maxRecords);
+    if (!persisted || persisted.length === 0) {
+      return;
+    }
+
+    persisted.forEach((record) => {
+      this.store.set(record.eventId, record);
+    });
   }
 }
 

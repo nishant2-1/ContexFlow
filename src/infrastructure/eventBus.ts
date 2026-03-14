@@ -1,5 +1,10 @@
 import { EventEmitter } from "node:events";
-import { TriggerEvent, WorkflowFailureEvent, WorkflowResult } from "../types/events";
+import {
+  ApprovalRequest,
+  TriggerEvent,
+  WorkflowFailureEvent,
+  WorkflowResult
+} from "../types/events";
 
 class WorkflowEventBus extends EventEmitter {
   emitIngested(event: TriggerEvent): void {
@@ -40,6 +45,30 @@ class WorkflowEventBus extends EventEmitter {
 
   onDuplicate(listener: (event: TriggerEvent) => void): void {
     this.on("event.duplicate", listener);
+  }
+
+  emitAwaitingApproval(approval: ApprovalRequest): void {
+    this.emit("event.awaiting_approval", approval);
+  }
+
+  onAwaitingApproval(listener: (approval: ApprovalRequest) => void): void {
+    this.on("event.awaiting_approval", listener);
+  }
+
+  emitApprovalApproved(approval: ApprovalRequest): void {
+    this.emit("event.approval_approved", approval);
+  }
+
+  onApprovalApproved(listener: (approval: ApprovalRequest) => void): void {
+    this.on("event.approval_approved", listener);
+  }
+
+  emitApprovalRejected(approval: ApprovalRequest): void {
+    this.emit("event.approval_rejected", approval);
+  }
+
+  onApprovalRejected(listener: (approval: ApprovalRequest) => void): void {
+    this.on("event.approval_rejected", listener);
   }
 }
 

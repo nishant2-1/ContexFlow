@@ -200,6 +200,10 @@
         grid-column: span 4;
       }
 
+      .approvals {
+        grid-column: span 12;
+      }
+
       .section-title {
         margin: 0 0 10px;
         font-size: 1.1rem;
@@ -340,6 +344,18 @@
         color: var(--rose);
       }
 
+      .tag.awaiting_approval {
+        color: var(--amber);
+      }
+
+      .tag.approval_approved {
+        color: var(--lime);
+      }
+
+      .tag.approval_rejected {
+        color: var(--rose);
+      }
+
       table {
         width: 100%;
         border-collapse: collapse;
@@ -379,7 +395,23 @@
         color: var(--cyan);
       }
 
+      .status.awaiting_approval {
+        color: var(--amber);
+      }
+
+      .status.rejected {
+        color: var(--rose);
+      }
+
       .dead-list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        gap: 8px;
+      }
+
+      .approval-list {
         margin: 0;
         padding: 0;
         list-style: none;
@@ -392,6 +424,23 @@
         border-radius: 12px;
         padding: 10px;
         background: rgba(13, 9, 17, 0.5);
+      }
+
+      .approval-item {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 10px;
+        background: rgba(11, 18, 33, 0.52);
+      }
+
+      .approval-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 8px;
+      }
+
+      .approval-actions button {
+        width: auto;
       }
 
       .dead-item button {
@@ -600,6 +649,12 @@
               <tbody id="runsTable"></tbody>
             </table>
           </div>
+        </article>
+
+        <article class="card approvals">
+          <h2 class="section-title">Pending Approvals</h2>
+          <div class="muted">Human-in-the-loop gate before ticket creation.</div>
+          <ul id="approvalsList" class="approval-list"></ul>
         </article>
 
         <article class="card dead">
@@ -855,6 +910,12 @@
                 ? `ticket: ${item.payload.ticketUrl || "n/a"} (${item.payload.issueProvider || "unknown"})`
                 : item.type === "failed"
                   ? `reason: ${item.payload.reason || "unknown"}`
+                  : item.type === "awaiting_approval"
+                    ? `approval: ${item.payload.approvalId || "n/a"}`
+                    : item.type === "approval_approved"
+                      ? `approved: ${item.payload.approvalId || "n/a"}`
+                      : item.type === "approval_rejected"
+                        ? `rejected: ${item.payload.approvalId || "n/a"}`
                   : `text: ${(item.payload.text || "").slice(0, 80)}`;
 
             return `
@@ -939,11 +1000,99 @@
         });
       }
 
+      function renderApprovals(records) {
+        const container = document.getElementById("approvalsList");
+        container.innerHTML = "";
+
+        if (records.length === 0) {
+          container.innerHTML = '<li class="approval-item">No pending approvals.</li>';
+          return;
+        }
+
+        for (const approval of records.slice(0, 10)) {
+          const item = document.createElement("li");
+          item.className = "approval-item";
+
+          const summary = approval.task?.summary || approval.event?.text || "No summary available";
+          const priority = approval.task?.priority || "unknown";
+
+          item.innerHTML = `
+            <strong>${escapeHtml(summary.slice(0, 160))}</strong><br />
+            <span class="muted">${escapeHtml(approval.approvalId)} | priority: ${escapeHtml(priority)} | event: ${escapeHtml(approval.event?.eventId || "n/a")}</span>
+            <div class="approval-actions">
+              <button data-approve="${escapeHtml(approval.approvalId)}">approve</button>
+              <button data-reject="${escapeHtml(approval.approvalId)}">reject</button>
+            </div>
+          `;
+
+          container.appendChild(item);
+        }
+
+        container.querySelectorAll("[data-approve]").forEach((button) => {
+          button.addEventListener("click", async () => {
+            const approvalId = button.dataset.approve;
+            if (!approvalId) {
+              return;
+            }
+
+            button.disabled = true;
+            button.textContent = "approving...";
+
+            try {
+              await getJson(`/api/approvals/${approvalId}/approve`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ decidedBy: "dashboard-admin" })
+              });
+              button.textContent = "approved";
+              await refresh();
+            } catch (error) {
+              button.textContent = "failed";
+              button.disabled = false;
+            }
+          });
+        });
+
+        container.querySelectorAll("[data-reject]").forEach((button) => {
+          button.addEventListener("click", async () => {
+            const approvalId = button.dataset.reject;
+            if (!approvalId) {
+              return;
+            }
+
+            const reason = window.prompt("Rejection reason", "Rejected by reviewer");
+            if (!reason) {
+              return;
+            }
+
+            button.disabled = true;
+            button.textContent = "rejecting...";
+
+            try {
+              await getJson(`/api/approvals/${approvalId}/reject`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  decidedBy: "dashboard-admin",
+                  reason
+                })
+              });
+              button.textContent = "rejected";
+              await refresh();
+            } catch (error) {
+              button.textContent = "failed";
+              button.disabled = false;
+            }
+          });
+        });
+      }
+
       async function refresh() {
-        const [metrics, deadLetters, runs] = await Promise.all([
+        const [metrics, deadLetters, runs, approvals] = await Promise.all([
           getJson("/api/metrics"),
           getJson("/api/dead-letters"),
-          getJson("/api/runs?limit=20")
+          getJson("/api/runs?limit=20"),
+          getJson("/api/approvals?status=pending&limit=20")
         ]);
 
         document.getElementById("ingested").textContent = metrics.ingestedEvents;
@@ -962,6 +1111,7 @@
 
         renderDeadLetters(deadLetters.records || []);
         renderRuns(runs.records || []);
+        renderApprovals(approvals.records || []);
 
         setRefreshState(`refresh: ${new Date().toLocaleTimeString()}`);
       }
@@ -987,7 +1137,16 @@
           streamState.textContent = "stream: reconnecting";
         };
 
-        ["ingested", "processing", "succeeded", "failed", "duplicate"].forEach((eventName) => {
+        [
+          "ingested",
+          "processing",
+          "succeeded",
+          "failed",
+          "duplicate",
+          "awaiting_approval",
+          "approval_approved",
+          "approval_rejected"
+        ].forEach((eventName) => {
           stream.addEventListener(eventName, (event) => {
             try {
               const payload = JSON.parse(event.data);

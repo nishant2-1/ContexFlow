@@ -36,9 +36,11 @@ export interface WorkflowResult {
 export type WorkflowRunStatus =
   | "ingested"
   | "processing"
+  | "awaiting_approval"
   | "succeeded"
   | "failed"
-  | "duplicate";
+  | "duplicate"
+  | "rejected";
 
 export interface WorkflowFailureEvent {
   eventId: string;
@@ -50,6 +52,7 @@ export interface WorkflowFailureEvent {
 export interface WorkflowRunRecord {
   eventId: string;
   source: SourcePlatform;
+  workspaceId: string | null;
   status: WorkflowRunStatus;
   createdAt: string;
   updatedAt: string;
@@ -59,5 +62,21 @@ export interface WorkflowRunRecord {
   issueProvider: "trello" | "jira" | null;
   priority: ProcessedTask["priority"] | null;
   summary: string | null;
+  reason: string | null;
+}
+
+export type ApprovalStatus = "pending" | "approved" | "rejected";
+
+export interface ApprovalRequest {
+  approvalId: string;
+  event: TriggerEvent;
+  task: ProcessedTask;
+  conversation: string;
+  issueProviderOverride: "trello" | "jira" | null;
+  status: ApprovalStatus;
+  requestedAt: string;
+  decidedAt: string | null;
+  requestedBy: string | null;
+  decidedBy: string | null;
   reason: string | null;
 }

@@ -6,6 +6,7 @@ import { workflowEventBus } from "../infrastructure/eventBus";
 import { metricsStore } from "../infrastructure/metrics";
 import { workflowRunStore } from "../infrastructure/workflowRunStore";
 import { requireOpsRole } from "../middleware/opsAuth";
+import { approvalService } from "../services/approval.service";
 import { workflowService } from "../services/workflow.service";
 import { TriggerEvent } from "../types/events";
 
@@ -20,15 +21,34 @@ const simulateSchema = z.object({
   workspaceId: z.string().optional()
 });
 
+const approvalDecisionSchema = z.object({
+  reason: z.string().min(3).max(400).optional(),
+  decidedBy: z.string().min(2).max(120).optional()
+});
+
 opsRouter.get("/metrics", requireOpsRole("viewer"), (_req, res) => {
   res.status(200).json(metricsStore.snapshot());
 });
 
-opsRouter.get("/runs", requireOpsRole("viewer"), (req, res) => {
+opsRouter.get("/runs", requireOpsRole("viewer"), async (req, res) => {
   const limit = Number(req.query.limit ?? 25);
   const safeLimit = Number.isFinite(limit) ? Math.min(Math.max(limit, 1), 200) : 25;
 
-  res.status(200).json({ records: workflowRunStore.list(safeLimit) });
+  const records = await workflowRunStore.listPersistent(safeLimit);
+  res.status(200).json({ records });
+});
+
+opsRouter.get("/approvals", requireOpsRole("viewer"), async (req, res) => {
+  const statusParam = typeof req.query.status === "string" ? req.query.status : undefined;
+  const status = statusParam === "pending" || statusParam === "approved" || statusParam === "rejected"
+    ? statusParam
+    : undefined;
+
+  const limit = Number(req.query.limit ?? 50);
+  const safeLimit = Number.isFinite(limit) ? Math.min(Math.max(limit, 1), 200) : 50;
+
+  const approvals = await approvalService.list(status, safeLimit);
+  res.status(200).json({ count: approvals.length, records: approvals });
 });
 
 opsRouter.get("/stream", requireOpsRole("viewer"), (req, res) => {
@@ -55,12 +75,18 @@ opsRouter.get("/stream", requireOpsRole("viewer"), (req, res) => {
   const onSucceeded = (result: unknown) => writeEvent("succeeded", result);
   const onFailed = (failure: unknown) => writeEvent("failed", failure);
   const onDuplicate = (event: TriggerEvent) => writeEvent("duplicate", event);
+  const onAwaitingApproval = (approval: unknown) => writeEvent("awaiting_approval", approval);
+  const onApprovalApproved = (approval: unknown) => writeEvent("approval_approved", approval);
+  const onApprovalRejected = (approval: unknown) => writeEvent("approval_rejected", approval);
 
   workflowEventBus.onIngested(onIngested);
   workflowEventBus.onProcessing(onProcessing);
   workflowEventBus.onSucceeded(onSucceeded);
   workflowEventBus.onFailed(onFailed);
   workflowEventBus.onDuplicate(onDuplicate);
+  workflowEventBus.onAwaitingApproval(onAwaitingApproval);
+  workflowEventBus.onApprovalApproved(onApprovalApproved);
+  workflowEventBus.onApprovalRejected(onApprovalRejected);
 
   const heartbeat = setInterval(() => {
     res.write(": keepalive\n\n");
@@ -73,6 +99,9 @@ opsRouter.get("/stream", requireOpsRole("viewer"), (req, res) => {
     workflowEventBus.off("event.succeeded", onSucceeded);
     workflowEventBus.off("event.failed", onFailed);
     workflowEventBus.off("event.duplicate", onDuplicate);
+    workflowEventBus.off("event.awaiting_approval", onAwaitingApproval);
+    workflowEventBus.off("event.approval_approved", onApprovalApproved);
+    workflowEventBus.off("event.approval_rejected", onApprovalRejected);
     res.end();
   });
 });
@@ -147,4 +176,57 @@ opsRouter.post("/replay/:eventId", requireOpsRole("admin"), async (req, res) => 
   }
 
   res.status(200).json({ ok: true, replayedEventId: eventId });
+});
+
+opsRouter.post("/approvals/:approvalId/approve", requireOpsRole("admin"), async (req, res) => {
+  const param = req.params.approvalId;
+  const approvalId = Array.isArray(param) ? param[0] : param;
+
+  if (!approvalId) {
+    res.status(400).json({ ok: false, message: "Missing approval id" });
+    return;
+  }
+
+  const parsed = approvalDecisionSchema.safeParse(req.body ?? {});
+  if (!parsed.success) {
+    res.status(400).json({ ok: false, error: parsed.error.flatten() });
+    return;
+  }
+
+  const decidedBy = parsed.data.decidedBy ?? "ops-admin";
+  const result = await workflowService.approveRequest(approvalId, decidedBy);
+
+  if (!result.ok) {
+    res.status(404).json({ ok: false, message: result.message });
+    return;
+  }
+
+  res.status(200).json({ ok: true, approvalId, message: result.message });
+});
+
+opsRouter.post("/approvals/:approvalId/reject", requireOpsRole("admin"), async (req, res) => {
+  const param = req.params.approvalId;
+  const approvalId = Array.isArray(param) ? param[0] : param;
+
+  if (!approvalId) {
+    res.status(400).json({ ok: false, message: "Missing approval id" });
+    return;
+  }
+
+  const parsed = approvalDecisionSchema.safeParse(req.body ?? {});
+  if (!parsed.success) {
+    res.status(400).json({ ok: false, error: parsed.error.flatten() });
+    return;
+  }
+
+  const reason = parsed.data.reason ?? "Rejected by reviewer";
+  const decidedBy = parsed.data.decidedBy ?? "ops-admin";
+  const result = await workflowService.rejectRequest(approvalId, decidedBy, reason);
+
+  if (!result.ok) {
+    res.status(404).json({ ok: false, message: result.message });
+    return;
+  }
+
+  res.status(200).json({ ok: true, approvalId, message: result.message });
 });

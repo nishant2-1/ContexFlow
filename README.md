@@ -130,8 +130,11 @@ flowchart LR
 - Synthetic event simulator endpoint (`/api/simulate`) for demos and stress scenarios.
 - Multi-provider ticketing abstraction with runtime routing (`trello` or `jira`).
 - Queue-backed execution modes: inline worker or BullMQ + Redis for retries and throughput.
+- Multi-region async transport drivers with SQS or Kafka options.
 - Workspace policy engine with per-workspace prompt prefixes and confidence thresholds.
 - Persistent run journal (`data/workflow-runs.jsonl`) for operational history.
+- Postgres read-model store option for workflow lifecycle events, run state, and approval records.
+- Human-in-the-loop approval workflow with pending queue, approve/reject endpoints, and dashboard controls.
 - Ops RBAC support with viewer/admin API keys for production-safe control endpoints.
 - AI provider fallback strategy:
   - OpenAI (`gpt-4o-mini`) or Gemini (`gemini-1.5-pro`) via LangChain.
@@ -299,6 +302,9 @@ https://<ngrok-id>.ngrok-free.app/webhooks/slack/events
 - Dead letters: `GET /api/dead-letters`
 - Replay failed event: `POST /api/replay/:eventId`
 - Trigger simulated event: `POST /api/simulate`
+- List approval requests: `GET /api/approvals?status=pending`
+- Approve request: `POST /api/approvals/:approvalId/approve`
+- Reject request: `POST /api/approvals/:approvalId/reject`
 
 If ops keys are configured, send one of these:
 
@@ -352,6 +358,6 @@ Longer version:
 - [x] Queue-backed execution with BullMQ option.
 - [x] Per-workspace prompt templates and confidence thresholds.
 - [x] Role-based access for replay/ops controls.
-- [ ] Full persistent event store with Postgres read models.
-- [ ] Multi-region async execution with SQS/Kafka transport.
-- [ ] Human-in-the-loop approval workflow before ticket creation.
+- [x] Full persistent event store with Postgres read models.
+- [x] Multi-region async execution with SQS/Kafka transport.
+- [x] Human-in-the-loop approval workflow before ticket creation.
